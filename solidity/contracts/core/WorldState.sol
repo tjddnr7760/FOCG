@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IWorldState.sol";
+import "../interfaces/IWorldState.sol";
 
 contract WorldState is IWorldState {
     mapping(uint256 => mapping(bytes32 => bytes)) private worldState;
