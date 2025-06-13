@@ -21,12 +21,12 @@ describe("Mediator", function () {
   describe("Mediator, WorldState 연동 테스트", function () {
     it("HP를 저장하고 올바르게 조회되어야 한다", async function () {
       // given
-      const playerId = 1;
       const hp = 100;
+      const keyName = "player_hp";
       
       // when
-      await mediator.setPlayerHP(playerId, hp);
-      const result = await mediator.getPlayerHP(playerId);
+      await mediator.setPlayerHP(keyName, hp);
+      const result = await mediator.getPlayerHP(keyName);
       
       // then
       expect(result).to.equal(hp);
@@ -34,12 +34,12 @@ describe("Mediator", function () {
 
     it("HP가 0일 때 정상적으로 저장하고 조회되어야 한다", async function () {
       // given
-      const playerId = 1;
       const hp = 0;
+      const keyName = "player_hp";
       
       // when
-      await mediator.setPlayerHP(playerId, hp);
-      const result = await mediator.getPlayerHP(playerId);
+      await mediator.setPlayerHP(keyName, hp);
+      const result = await mediator.getPlayerHP(keyName);
       
       // then
       expect(result).to.equal(hp);
@@ -47,16 +47,16 @@ describe("Mediator", function () {
 
     it("같은 플레이어의 HP를 업데이트하면 새로운 값으로 덮어써져야 한다", async function () {
       // given
-      const playerId = 1;
       const initialHP = 100;
       const updatedHP = 150;
+      const keyName = "player_hp";
       
       // when
-      await mediator.setPlayerHP(playerId, initialHP);
-      const initialResult = await mediator.getPlayerHP(playerId);
+      await mediator.setPlayerHP(keyName, initialHP);
+      const initialResult = await mediator.getPlayerHP(keyName);
       
-      await mediator.setPlayerHP(playerId, updatedHP);
-      const updatedResult = await mediator.getPlayerHP(playerId);
+      await mediator.setPlayerHP(keyName, updatedHP);
+      const updatedResult = await mediator.getPlayerHP(keyName);
       
       // then
       expect(initialResult).to.equal(initialHP);
