@@ -8,6 +8,8 @@ describe("Mediator", function () {
   let Mediator: any;
   let mediator: any;
   let owner: Signer;
+  let newAdmin: Signer;
+  let nonAdmin: Signer;
 
   // 헬퍼 함수들
   function createKey(keyName: string): string {
@@ -22,9 +24,13 @@ describe("Mediator", function () {
     expect(actual).to.equal(ethers.hexlify(createBytes(expected)));
   }
 
+  async function deployNewMediator(admin: Signer) {
+    return await Mediator.connect(admin).deploy(await worldState.getAddress());
+  }
+
   beforeEach(async function () {
     WorldState = await ethers.getContractFactory("WorldState");
-    [owner] = await ethers.getSigners();
+    [owner, newAdmin, nonAdmin] = await ethers.getSigners();
     worldState = await WorldState.deploy();
     worldState = worldState.connect(owner);
     
@@ -104,6 +110,86 @@ describe("Mediator", function () {
       expectBytesEqual(initialResult, "100");
       expectBytesEqual(updatedResult, "150");
       expect(updatedResult).to.not.equal(initialResult);
+    });
+  });
+
+  describe("Mediator 업그레이드 테스트", function () {
+    it("새로운 Mediator로 업그레이드할 수 있어야 한다", async function () {
+      // given
+      const newMediator = await deployNewMediator(newAdmin);
+      
+      // when
+      await mediator.upgradeToNewMediator(await newMediator.getAddress());
+      
+      // then
+      const worldId = await mediator.worldId();
+      const currentMediator = await worldState.worldMediator(worldId);
+      expect(currentMediator).to.equal(await newMediator.getAddress());
+    });
+
+    it("업그레이드 후 새로운 Mediator로 데이터를 설정할 수 있어야 한다", async function () {
+      // given
+      const newMediator = await deployNewMediator(newAdmin);
+      const key = createKey("player_hp");
+      
+      // when
+      await mediator.upgradeToNewMediator(await newMediator.getAddress());
+      await newMediator.setWorldData(key, createBytes("200"));
+      
+      // then
+      const result = await newMediator.getWorldData(key);
+      expectBytesEqual(result, "200");
+    });
+
+    it("업그레이드 후 기존 Mediator로는 데이터를 설정할 수 없어야 한다", async function () {
+      // given
+      const newMediator = await deployNewMediator(newAdmin);
+      const key = createKey("player_hp");
+      
+      // when
+      await mediator.upgradeToNewMediator(await newMediator.getAddress());
+      
+      // then
+      await expect(
+        mediator.setWorldData(key, createBytes("200"))
+      ).to.be.revertedWith("Unauthorized: Not mediator of this world");
+    });
+
+    it("zero address로 업그레이드할 수 없어야 한다", async function () {
+      // when & then
+      await expect(
+        mediator.upgradeToNewMediator(ethers.ZeroAddress)
+      ).to.be.revertedWith("New mediator cannot be zero address");
+    });
+
+    it("현재 Mediator 주소로 업그레이드할 수 없어야 한다", async function () {
+      // when & then
+      await expect(
+        mediator.upgradeToNewMediator(await mediator.getAddress())
+      ).to.be.revertedWith("New mediator cannot be current mediator");
+    });
+
+    it("admin이 아닌 계정은 업그레이드할 수 없어야 한다", async function () {
+      // given
+      const newMediator = await deployNewMediator(nonAdmin);
+      
+      // when & then
+      await expect(
+        mediator.connect(nonAdmin).upgradeToNewMediator(await newMediator.getAddress())
+      ).to.be.revertedWith("Only admin can call this function");
+    });
+
+    it("업그레이드 시 MediatorUpgraded 이벤트가 발생해야 한다", async function () {
+      // given
+      const newMediator = await deployNewMediator(newAdmin);
+      
+      // when
+      const tx = await mediator.upgradeToNewMediator(await newMediator.getAddress());
+      
+      // then
+      await expect(tx)
+        .to.emit(mediator, "MediatorUpgraded")
+        .withArgs(await mediator.getAddress(), await newMediator.getAddress());
     });
   });
 }); 
