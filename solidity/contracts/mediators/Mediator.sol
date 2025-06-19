@@ -4,35 +4,43 @@ pragma solidity ^0.8.0;
 import "../interfaces/IWorldState.sol";
 
 contract Mediator {
-    uint16 public immutable worldId;
     address public admin;
-    IWorldState public worldState;
-    
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "Only admin");
-        _;
-    }
-    
+    IWorldState public immutable worldState;
+    uint16 public immutable worldId;
+
+    event MediatorUpgraded(address indexed oldMediator, address indexed newMediator);
+    event WorldDataChanged(bytes32 indexed key);
+
     constructor(address _worldState) {
+        require(_worldState != address(0), "WorldState address cannot be zero");
         admin = msg.sender;
         worldState = IWorldState(_worldState);
+        
         worldId = worldState.createNewWorld();
+        worldState.setMediator(worldId, address(this));
     }
-    
-    function updateWorldState(address _newWorldState) external onlyAdmin {
-        worldState = IWorldState(_newWorldState);
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only admin can call this function");
+        _;
     }
-    
-    function setPlayerHP(string memory hp_key, uint256 hp) external {
-        bytes32 key = keccak256(abi.encodePacked(hp_key));
-        bytes memory packedHP = abi.encodePacked(hp);
-        worldState.setWorld(worldId, key, packedHP);
+
+    function upgradeToNewMediator(address newMediator) external onlyAdmin {
+        require(newMediator != address(0), "New mediator cannot be zero address");
+        require(newMediator != address(this), "New mediator cannot be current mediator");
+        
+        address oldMediator = address(this);
+        worldState.setMediator(worldId, newMediator);
+        
+        emit MediatorUpgraded(oldMediator, newMediator);
     }
-    
-    function getPlayerHP(string memory hp_key) external view returns (uint256) {
-        bytes32 key = keccak256(abi.encodePacked(hp_key));
-        bytes memory data = worldState.getWorld(worldId, key);
-        if (data.length == 0) return 0;
-        return abi.decode(data, (uint256));
+
+    function setWorldData(bytes32 key, bytes calldata value) external onlyAdmin {
+        worldState.setWorld(worldId, key, value);
+        emit WorldDataChanged(key);
+    }
+
+    function getWorldData(bytes32 key) external view returns (bytes memory) {
+        return worldState.getWorld(worldId, key);
     }
 }
