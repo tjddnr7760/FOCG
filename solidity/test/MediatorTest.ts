@@ -11,7 +11,6 @@ describe("Mediator", function () {
   let newAdmin: Signer;
   let nonAdmin: Signer;
 
-  // 헬퍼 함수들
   function createKey(keyName: string): string {
     return ethers.keccak256(ethers.toUtf8Bytes(keyName));
   }
@@ -45,8 +44,8 @@ describe("Mediator", function () {
       const hpBytes = createBytes("100");
       
       // when
-      await mediator.setWorldData(key, hpBytes);
-      const result = await mediator.getWorldData(key);
+      await mediator.setWorld(key, hpBytes);
+      const result = await mediator.getWorld(key);
       
       // then
       expectBytesEqual(result, "100");
@@ -58,8 +57,8 @@ describe("Mediator", function () {
       const hpBytes = createBytes("0");
       
       // when
-      await mediator.setWorldData(key, hpBytes);
-      const result = await mediator.getWorldData(key);
+      await mediator.setWorld(key, hpBytes);
+      const result = await mediator.getWorld(key);
       
       // then
       expectBytesEqual(result, "0");
@@ -71,8 +70,8 @@ describe("Mediator", function () {
       const emptyData = "0x";
       
       // when
-      await mediator.setWorldData(key, emptyData);
-      const result = await mediator.getWorldData(key);
+      await mediator.setWorld(key, emptyData);
+      const result = await mediator.getWorld(key);
       
       // then
       expect(result).to.equal(emptyData);
@@ -84,11 +83,11 @@ describe("Mediator", function () {
       const mpKey = createKey("player_mp");
       
       // when
-      await mediator.setWorldData(hpKey, createBytes("100"));
-      await mediator.setWorldData(mpKey, createBytes("50"));
+      await mediator.setWorld(hpKey, createBytes("100"));
+      await mediator.setWorld(mpKey, createBytes("50"));
       
-      const resultHp = await mediator.getWorldData(hpKey);
-      const resultMp = await mediator.getWorldData(mpKey);
+      const resultHp = await mediator.getWorld(hpKey);
+      const resultMp = await mediator.getWorld(mpKey);
       
       // then
       expectBytesEqual(resultHp, "100");
@@ -100,11 +99,11 @@ describe("Mediator", function () {
       const key = createKey("player_hp");
       
       // when
-      await mediator.setWorldData(key, createBytes("100"));
-      const initialResult = await mediator.getWorldData(key);
+      await mediator.setWorld(key, createBytes("100"));
+      const initialResult = await mediator.getWorld(key);
       
-      await mediator.setWorldData(key, createBytes("150"));
-      const updatedResult = await mediator.getWorldData(key);
+      await mediator.setWorld(key, createBytes("150"));
+      const updatedResult = await mediator.getWorld(key);
       
       // then
       expectBytesEqual(initialResult, "100");
@@ -134,10 +133,10 @@ describe("Mediator", function () {
       
       // when
       await mediator.upgradeToNewMediator(await newMediator.getAddress());
-      await newMediator.setWorldData(key, createBytes("200"));
+      await newMediator.setWorld(key, createBytes("200"));
       
       // then
-      const result = await newMediator.getWorldData(key);
+      const result = await newMediator.getWorld(key);
       expectBytesEqual(result, "200");
     });
 
@@ -151,7 +150,7 @@ describe("Mediator", function () {
       
       // then
       await expect(
-        mediator.setWorldData(key, createBytes("200"))
+        mediator.setWorld(key, createBytes("200"))
       ).to.be.revertedWith("Unauthorized: Not mediator of this world");
     });
 

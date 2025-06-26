@@ -36,7 +36,7 @@ describe("WorldState", function () {
       const nonExistentKey = createKey("non_existent");
       
       // when
-      const result = await worldState.getWorld(await getWorldId(), nonExistentKey);
+      const result = await worldState.get(await getWorldId(), nonExistentKey);
       
       // then
       expect(result).to.equal("0x");

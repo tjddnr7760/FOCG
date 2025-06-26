@@ -33,14 +33,14 @@ contract WorldState is IWorldState {
         emit MediatorSet(worldId, newMediator);
     }
 
-    function setWorld(uint16 worldId, bytes32 key, bytes calldata value) external {
+    function store(uint16 worldId, bytes32 key, bytes calldata value) external {
         require(worldMediator[worldId] == msg.sender, "Unauthorized: Not mediator of this world");
         worldState[worldId][key] = value;
         
         emit WorldDataUpdated(worldId, key);
     }
 
-    function getWorld(uint16 worldId, bytes32 key) external view returns (bytes memory) {
+    function get(uint16 worldId, bytes32 key) external view returns (bytes memory) {
         return worldState[worldId][key];
     }
 }

@@ -8,14 +8,13 @@ contract Mediator {
     IWorldState public immutable worldState;
     uint16 public immutable worldId;
 
+    event DataStored(bytes32 indexed key);
     event MediatorUpgraded(address indexed oldMediator, address indexed newMediator);
-    event WorldDataChanged(bytes32 indexed key);
 
     constructor(address _worldState) {
         require(_worldState != address(0), "WorldState address cannot be zero");
         admin = msg.sender;
         worldState = IWorldState(_worldState);
-        
         worldId = worldState.createNewWorld();
         worldState.setMediator(worldId, address(this));
     }
@@ -23,6 +22,15 @@ contract Mediator {
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin can call this function");
         _;
+    }
+
+    function setWorld(bytes32 key, bytes calldata data) external onlyAdmin {
+        worldState.store(worldId, key, data);
+        emit DataStored(key);
+    }
+
+    function getWorld(bytes32 key) external view returns (bytes memory) {
+        return worldState.get(worldId, key);
     }
 
     function upgradeToNewMediator(address newMediator) external onlyAdmin {
@@ -33,14 +41,5 @@ contract Mediator {
         worldState.setMediator(worldId, newMediator);
         
         emit MediatorUpgraded(oldMediator, newMediator);
-    }
-
-    function setWorldData(bytes32 key, bytes calldata value) external onlyAdmin {
-        worldState.setWorld(worldId, key, value);
-        emit WorldDataChanged(key);
-    }
-
-    function getWorldData(bytes32 key) external view returns (bytes memory) {
-        return worldState.getWorld(worldId, key);
     }
 }
