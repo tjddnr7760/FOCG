@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IWorldState.sol";
+import "../core/IWorldState.sol";
 
 contract Mediator {
     address public admin;
     IWorldState public immutable worldState;
     uint16 public immutable worldId;
 
-    event DataStored(bytes32 indexed key);
     event MediatorUpgraded(address indexed oldMediator, address indexed newMediator);
 
     constructor(address _worldState) {
@@ -26,7 +25,6 @@ contract Mediator {
 
     function setWorld(bytes32 key, bytes calldata data) external onlyAdmin {
         worldState.store(worldId, key, data);
-        emit DataStored(key);
     }
 
     function getWorld(bytes32 key) external view returns (bytes memory) {

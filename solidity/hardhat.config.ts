@@ -7,6 +7,12 @@ dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
+  paths: {
+    sources: "./contracts",  // test에 있는 컨트랙트 포함시 변경하여 컴파일
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
+  },
   networks: {
     hardhat: {
     },

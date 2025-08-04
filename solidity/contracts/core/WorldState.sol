@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../interfaces/IWorldState.sol";
+import "./IWorldState.sol";
 
 contract WorldState is IWorldState {
     uint16 public totalWorlds;
